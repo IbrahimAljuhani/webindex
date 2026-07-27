@@ -7,17 +7,19 @@
  ╚══╝╚══╝ ╚══════╝╚═════╝ ╚═╝╚═╝  ╚═══╝╚═════╝ ╚══════╝╚═╝  ╚═╝
 ```
 
-**Secure, isolated, multi-domain Nginx + Cloudflare + Let's Encrypt setup — in one script**
+**Secure, isolated, multi-domain Nginx + Cloudflare + Let's Encrypt setup for static sites — in one script**
 
 [![Shell](https://img.shields.io/badge/shell-bash-4EAA25?style=flat-square&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/) [![Platform](https://img.shields.io/badge/platform-Ubuntu%2024.04-E95420?style=flat-square&logo=ubuntu&logoColor=white)](https://ubuntu.com) [![Cloudflare](https://img.shields.io/badge/proxy-Cloudflare-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com) [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
+
+> **📌 Scope: static websites only.** This project serves plain HTML/CSS/JS files — landing pages, portfolios, documentation sites, brochure sites. It does **not** run PHP, Node.js, Python, databases, WordPress, or any other server-side application. If your site needs a backend or an app server, this isn't the right tool.
 
 ---
 
 ## What is webindex?
 
-`webindex` is a single Bash script (`nginx-cf-setup.sh`) that turns a fresh Ubuntu server into a hardened, Cloudflare-only web host for one or more domains — with a free, auto-renewing SSL certificate, isolated file permissions per site, and a firewall that only trusts Cloudflare's edge network.
+`webindex` is a single Bash script (`nginx-cf-setup.sh`) that turns a fresh Ubuntu server into a hardened, Cloudflare-only host **for static pages** — with a free, auto-renewing SSL certificate, isolated file permissions per site, and a firewall that only trusts Cloudflare's edge network.
 
-Run it, answer a few prompts, point your domain's DNS at the server, and you get a production-ready static site host with an A-grade security posture — no manual Nginx or Certbot configuration required.
+Run it, answer a few prompts, drop your `index.html` (and assets) into the generated folder, and you get a production-ready static site host with an A-grade security posture — no manual Nginx or Certbot configuration required.
 
 ```bash
 sudo ./nginx-cf-setup.sh
@@ -54,6 +56,17 @@ Standing up a simple static site "the right way" usually means manually:
 | **No login shell by default** | The web file owner is created with `/usr/sbin/nologin` — it only needs to own files, not log in |
 | **Idempotent firewall rules** | Re-running the script doesn't pile up duplicate UFW rules |
 | **Fail-fast validation** | Invalid domain/email formats, missing dependencies, and failed Cloudflare IP lookups all stop the script immediately with a clear message — instead of silently continuing in a broken state |
+
+### Out of Scope
+
+`webindex` intentionally does **not** handle:
+
+- PHP, Node.js, Python, or any server-side runtime
+- Databases (MySQL, PostgreSQL, MongoDB, etc.)
+- WordPress or other CMS platforms that need an app server
+- Reverse-proxying to a backend app
+
+If you need any of the above, look at a general-purpose Nginx + app-server setup instead — this script is deliberately scoped to static files only, which is also what keeps its security model (isolated, read-mostly file permissions, no execution) simple and solid.
 
 ---
 
@@ -97,6 +110,7 @@ Standing up a simple static site "the right way" usually means manually:
 - Root / sudo access
 - A domain with its nameservers pointed at Cloudflare
 - The domain's A record already created and pointing at your server's IP
+- A static site (HTML/CSS/JS) ready to drop into the generated web root — no build/runtime step needed
 
 ---
 
@@ -117,7 +131,7 @@ You'll be asked for:
 4. **System username** to own the site's files (created automatically if it doesn't exist)
 5. Confirmation that DNS is set to **DNS Only** and already points at this server
 
-The script then installs everything, configures the firewall, issues the certificate, and applies the final hardened Nginx config — all in one run.
+The script then installs everything, configures the firewall, issues the certificate, and applies the final hardened Nginx config — all in one run. It also drops a placeholder `index.html` into the web root so you can confirm the site loads immediately; replace it with your own static files at `/var/www/yourdomain.com/html`.
 
 ### Adding a second domain
 
@@ -166,7 +180,6 @@ Your Cloudflare SSL/TLS mode is set to **Flexible**. Change it to **Full (Strict
 - [x] Security headers (HSTS, nosniff, frame options, referrer policy)
 - [x] Nginx version banner hidden (`server_tokens off`)
 - [ ] Pre-flight DNS check before calling Certbot
-- [ ] Optional PHP-FPM / reverse-proxy site templates (not just static files)
 - [ ] Config backup before overwrite
 
 ---
